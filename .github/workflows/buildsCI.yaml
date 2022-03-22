@@ -1,0 +1,64 @@
+name: Build_CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+     
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)  
+  LRS_BUILD_CONFIG: Debug
+  LRS_RUN_CONFIG: Release
+  PYTHON_PATH: C:\\hostedtoolcache\\windows\\Python\\3.8.1\\x64\\python.exe
+  
+jobs:    
+  Windows_cpp:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      VS15: true
+    steps:
+    - uses: actions/checkout@v2    
+
+    - name: Enable Long Paths
+      shell: powershell
+      run: |
+       New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+
+    - name: PreBuild
+      shell: bash
+      run: |
+       cd scripts && ./api_check.sh && cd ..
+       mkdir build
+
+    - name: package-version-to-git-tag 22
+      id: create_release
+      uses: zendesk/action-create-release@v1
+      with:
+        # tag_name: "0.1.0"
+        auto_increment_type: patch
+        #release_name: Release ${{ github.ref }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+    # - name: Configure CMake
+    # # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+    # # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+    #   shell: bash
+    #   run: |        
+    #     cd build
+    #     pwd
+    #     ls
+    #     cmake .. -G "Visual Studio 15 2017 Win64" -DBUILD_EXAMPLES=true -DBUILD_WITH_TM2=true -DCHECK_FOR_UPDATES=true
+
+    # - name: Build
+    #   # Build your program with the given configuration
+    #   shell: bash
+    #   run: |
+    #     cd build
+    #     cmake --build . --config ${{env.LRS_BUILD_CONFIG}} -- -m    
+
+    
